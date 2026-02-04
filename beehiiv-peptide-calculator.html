@@ -1,0 +1,840 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Peptide Dosing Calculator</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            padding: 20px;
+            min-height: 100vh;
+        }
+        
+        .container {
+            max-width: 900px;
+            margin: 0 auto;
+            background: white;
+            border-radius: 12px;
+            box-shadow: 0 10px 40px rgba(0,0,0,0.1);
+            overflow: hidden;
+        }
+        
+        .header {
+            background: #1a237e;
+            color: white;
+            padding: 30px;
+            text-align: center;
+        }
+        
+        .header h1 {
+            font-size: 28px;
+            margin-bottom: 8px;
+        }
+        
+        .header p {
+            opacity: 0.9;
+            font-size: 14px;
+        }
+        
+        .mode-toggle {
+            display: flex;
+            gap: 10px;
+            padding: 20px;
+            background: #f5f7ff;
+            border-bottom: 1px solid #e0e0e0;
+        }
+        
+        .mode-btn {
+            flex: 1;
+            padding: 12px;
+            border: 2px solid #1a237e;
+            background: white;
+            color: #1a237e;
+            font-weight: 600;
+            border-radius: 8px;
+            cursor: pointer;
+            transition: all 0.3s;
+        }
+        
+        .mode-btn.active {
+            background: #1a237e;
+            color: white;
+        }
+        
+        .content {
+            padding: 30px;
+        }
+        
+        .section {
+            margin-bottom: 25px;
+        }
+        
+        .section-title {
+            font-size: 18px;
+            color: #1a237e;
+            margin-bottom: 15px;
+            font-weight: 600;
+        }
+        
+        .input-group {
+            margin-bottom: 15px;
+        }
+        
+        label {
+            display: block;
+            margin-bottom: 5px;
+            color: #333;
+            font-weight: 500;
+            font-size: 14px;
+        }
+        
+        input, select {
+            width: 100%;
+            padding: 10px;
+            border: 2px solid #e0e0e0;
+            border-radius: 6px;
+            font-size: 14px;
+            transition: border-color 0.3s;
+        }
+        
+        input:focus, select:focus {
+            outline: none;
+            border-color: #1a237e;
+        }
+        
+        .unit-suffix {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+        
+        .unit-suffix input {
+            flex: 1;
+        }
+        
+        .unit-suffix span {
+            color: #666;
+            font-size: 14px;
+        }
+        
+        .checkbox-group {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            margin-top: 10px;
+        }
+        
+        .checkbox-group input[type="checkbox"] {
+            width: auto;
+        }
+        
+        .result-card {
+            background: #f5f7ff;
+            border-left: 4px solid #1a237e;
+            padding: 20px;
+            border-radius: 8px;
+            margin-top: 20px;
+        }
+        
+        .result-card h3 {
+            color: #1a237e;
+            margin-bottom: 15px;
+            font-size: 20px;
+        }
+        
+        .result-item {
+            display: flex;
+            justify-content: space-between;
+            padding: 10px 0;
+            border-bottom: 1px solid #e0e0e0;
+        }
+        
+        .result-item:last-child {
+            border-bottom: none;
+        }
+        
+        .result-label {
+            color: #666;
+            font-size: 14px;
+        }
+        
+        .result-value {
+            color: #1a237e;
+            font-weight: 600;
+            font-size: 16px;
+        }
+        
+        .syringe-container {
+            margin: 20px 0;
+            text-align: center;
+        }
+        
+        .syringe {
+            display: inline-block;
+            width: 80%;
+            max-width: 400px;
+            height: 60px;
+            background: white;
+            border: 3px solid #1a237e;
+            border-radius: 8px;
+            position: relative;
+            overflow: hidden;
+        }
+        
+        .syringe-fill {
+            height: 100%;
+            background: linear-gradient(90deg, #667eea 0%, #764ba2 100%);
+            transition: width 0.5s ease;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: white;
+            font-weight: 600;
+        }
+        
+        .syringe-markers {
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            display: flex;
+            justify-content: space-between;
+            padding: 0 10px;
+            pointer-events: none;
+        }
+        
+        .marker {
+            width: 2px;
+            background: #ccc;
+            height: 100%;
+        }
+        
+        .progress-bar {
+            width: 100%;
+            height: 24px;
+            background: #e0e0e0;
+            border-radius: 12px;
+            overflow: hidden;
+            margin: 10px 0;
+        }
+        
+        .progress-fill {
+            height: 100%;
+            background: linear-gradient(90deg, #667eea 0%, #764ba2 100%);
+            transition: width 0.5s ease;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: white;
+            font-size: 12px;
+            font-weight: 600;
+        }
+        
+        .collapsible {
+            background: #f5f7ff;
+            border-radius: 8px;
+            margin-bottom: 15px;
+            overflow: hidden;
+        }
+        
+        .collapsible-header {
+            padding: 15px;
+            cursor: pointer;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            background: #f5f7ff;
+            transition: background 0.3s;
+        }
+        
+        .collapsible-header:hover {
+            background: #e8ecff;
+        }
+        
+        .collapsible-header h3 {
+            color: #1a237e;
+            font-size: 16px;
+        }
+        
+        .collapsible-icon {
+            color: #1a237e;
+            font-size: 20px;
+            transition: transform 0.3s;
+        }
+        
+        .collapsible-icon.open {
+            transform: rotate(180deg);
+        }
+        
+        .collapsible-content {
+            max-height: 0;
+            overflow: hidden;
+            transition: max-height 0.3s ease;
+        }
+        
+        .collapsible-content.open {
+            max-height: 1000px;
+        }
+        
+        .collapsible-inner {
+            padding: 15px;
+        }
+        
+        .btn-primary {
+            background: #1a237e;
+            color: white;
+            padding: 12px 24px;
+            border: none;
+            border-radius: 8px;
+            cursor: pointer;
+            font-weight: 600;
+            font-size: 14px;
+            transition: background 0.3s;
+            width: 100%;
+            margin-top: 10px;
+        }
+        
+        .btn-primary:hover {
+            background: #0d1642;
+        }
+        
+        .alert {
+            padding: 12px;
+            border-radius: 6px;
+            margin: 10px 0;
+            font-size: 14px;
+        }
+        
+        .alert-warning {
+            background: #fff3cd;
+            border-left: 4px solid #ffc107;
+            color: #856404;
+        }
+        
+        .alert-info {
+            background: #d1ecf1;
+            border-left: 4px solid #0dcaf0;
+            color: #055160;
+        }
+        
+        .logo-container {
+            text-align: center;
+            margin-bottom: 20px;
+        }
+        
+        .logo-link {
+            display: inline-block;
+        }
+        
+        .logo-img {
+            max-width: 100%;
+            height: auto;
+            max-height: 80px;
+        }
+        
+        .footer {
+            margin-top: 40px;
+            padding-top: 20px;
+            border-top: 2px solid #e0e0e0;
+            text-align: center;
+        }
+        
+        .footer a {
+            color: #1a237e;
+            text-decoration: none;
+            font-weight: 600;
+            font-size: 14px;
+            transition: color 0.3s;
+        }
+        
+        .footer a:hover {
+            color: #0d1642;
+        }
+        
+        @media (max-width: 600px) {
+            body {
+                padding: 10px;
+            }
+            
+            .header {
+                padding: 20px;
+            }
+            
+            .header h1 {
+                font-size: 22px;
+            }
+            
+            .content {
+                padding: 20px;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <!-- Logo -->
+        <div class="logo-container">
+            <a href="https://www.projectbiohacking.com/" target="_blank" rel="noopener noreferrer" class="logo-link">
+                <img src="https://i.imgur.com/placeholder-logo.png" alt="Project Biohacking" class="logo-img">
+            </a>
+        </div>
+        
+        <div class="header">
+            <h1>💉 Peptide Dosing Calculator</h1>
+            <p>Accurate peptide reconstitution and dosing calculations</p>
+        </div>
+        
+        <div class="mode-toggle">
+            <button class="mode-btn active" onclick="setMode('units')" id="unitsBtn">Find Units</button>
+            <button class="mode-btn" onclick="setMode('dose')" id="doseBtn">Find Dose</button>
+        </div>
+        
+        <div class="content">
+            <!-- Vial Information -->
+            <div class="section">
+                <h2 class="section-title">Vial Information</h2>
+                
+                <div class="input-group">
+                    <label>Vial Size</label>
+                    <div class="unit-suffix">
+                        <input type="number" id="vialSize" value="10" step="0.1" oninput="calculate()">
+                        <span>mg</span>
+                    </div>
+                </div>
+                
+                <div class="input-group">
+                    <label>Bacteriostatic Water</label>
+                    <div class="unit-suffix">
+                        <input type="number" id="waterVolume" value="2" step="0.1" oninput="calculate()">
+                        <span>mL</span>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- Mode-specific inputs -->
+            <div class="section" id="unitsMode">
+                <h2 class="section-title">Desired Dose</h2>
+                
+                <div class="input-group">
+                    <label>Dose Amount</label>
+                    <div class="unit-suffix">
+                        <input type="number" id="desiredDose" value="0.25" step="0.01" oninput="calculate()">
+                        <span>mg</span>
+                    </div>
+                </div>
+                
+                <div class="checkbox-group">
+                    <input type="checkbox" id="useWeight" onchange="toggleWeight()">
+                    <label for="useWeight" style="margin-bottom: 0;">Calculate by body weight</label>
+                </div>
+                
+                <div id="weightInput" style="display: none; margin-top: 10px;">
+                    <div class="input-group">
+                        <label>Body Weight</label>
+                        <div class="unit-suffix">
+                            <input type="number" id="bodyWeight" value="70" step="0.1" oninput="calculate()">
+                            <span>kg</span>
+                        </div>
+                    </div>
+                    
+                    <div class="input-group">
+                        <label>Dose per kg</label>
+                        <div class="unit-suffix">
+                            <input type="number" id="dosePerKg" value="0.005" step="0.001" oninput="calculate()">
+                            <span>mg/kg</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="section" id="doseMode" style="display: none;">
+                <h2 class="section-title">Syringe Units</h2>
+                
+                <div class="input-group">
+                    <label>Units to Inject</label>
+                    <div class="unit-suffix">
+                        <input type="number" id="unitsToInject" value="10" step="1" oninput="calculate()">
+                        <span>units</span>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- Results -->
+            <div id="results"></div>
+            
+            <!-- Advanced Features -->
+            <div class="collapsible">
+                <div class="collapsible-header" onclick="toggleCollapsible('supply')">
+                    <h3>📦 Supply Tracking</h3>
+                    <span class="collapsible-icon" id="supplyIcon">▼</span>
+                </div>
+                <div class="collapsible-content" id="supplyContent">
+                    <div class="collapsible-inner">
+                        <div class="input-group">
+                            <label>Number of Doses Taken</label>
+                            <input type="number" id="dosesTaken" value="0" step="1" oninput="calculate()">
+                        </div>
+                        <div id="supplyResults"></div>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="collapsible">
+                <div class="collapsible-header" onclick="toggleCollapsible('schedule')">
+                    <h3>📅 Dosing Schedule</h3>
+                    <span class="collapsible-icon" id="scheduleIcon">▼</span>
+                </div>
+                <div class="collapsible-content" id="scheduleContent">
+                    <div class="collapsible-inner">
+                        <div class="input-group">
+                            <label>Dosing Frequency</label>
+                            <select id="frequency" onchange="calculate()">
+                                <option value="daily">Daily (7x/week)</option>
+                                <option value="6x">6 times per week</option>
+                                <option value="5x">5 times per week</option>
+                                <option value="eod">Every other day</option>
+                                <option value="weekly">Weekly</option>
+                                <option value="custom">Custom</option>
+                            </select>
+                        </div>
+                        
+                        <div class="input-group" id="customFrequency" style="display: none;">
+                            <label>Doses per Week</label>
+                            <input type="number" id="customDoses" value="7" step="1" min="1" max="21" oninput="calculate()">
+                        </div>
+                        
+                        <div id="scheduleResults"></div>
+                        
+                        <button class="btn-primary" onclick="addToCalendar()">📅 Add to Calendar</button>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- Footer -->
+            <div class="footer">
+                <a href="https://www.projectbiohacking.com/" target="_blank" rel="noopener noreferrer">
+                    Visit Project Biohacking →
+                </a>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        let currentMode = 'units';
+        
+        function setMode(mode) {
+            currentMode = mode;
+            document.getElementById('unitsBtn').classList.toggle('active', mode === 'units');
+            document.getElementById('doseBtn').classList.toggle('active', mode === 'dose');
+            document.getElementById('unitsMode').style.display = mode === 'units' ? 'block' : 'none';
+            document.getElementById('doseMode').style.display = mode === 'dose' ? 'block' : 'none';
+            calculate();
+        }
+        
+        function toggleWeight() {
+            const useWeight = document.getElementById('useWeight').checked;
+            document.getElementById('weightInput').style.display = useWeight ? 'block' : 'none';
+            calculate();
+        }
+        
+        function toggleCollapsible(section) {
+            const content = document.getElementById(section + 'Content');
+            const icon = document.getElementById(section + 'Icon');
+            const isOpen = content.classList.contains('open');
+            
+            content.classList.toggle('open');
+            icon.classList.toggle('open');
+        }
+        
+        function calculate() {
+            const vialSize = parseFloat(document.getElementById('vialSize').value) || 0;
+            const waterVolume = parseFloat(document.getElementById('waterVolume').value) || 0;
+            
+            if (vialSize <= 0 || waterVolume <= 0) {
+                document.getElementById('results').innerHTML = '';
+                return;
+            }
+            
+            const concentration = vialSize / waterVolume; // mg/mL
+            
+            if (currentMode === 'units') {
+                calculateUnits(vialSize, waterVolume, concentration);
+            } else {
+                calculateDose(vialSize, waterVolume, concentration);
+            }
+            
+            // Update frequency display
+            const frequency = document.getElementById('frequency').value;
+            document.getElementById('customFrequency').style.display = frequency === 'custom' ? 'block' : 'none';
+        }
+        
+        function calculateUnits(vialSize, waterVolume, concentration) {
+            let desiredDose = parseFloat(document.getElementById('desiredDose').value) || 0;
+            const useWeight = document.getElementById('useWeight').checked;
+            
+            if (useWeight) {
+                const bodyWeight = parseFloat(document.getElementById('bodyWeight').value) || 0;
+                const dosePerKg = parseFloat(document.getElementById('dosePerKg').value) || 0;
+                desiredDose = bodyWeight * dosePerKg;
+            }
+            
+            const unitsToInject = (desiredDose / concentration) * 100;
+            const dosesPerVial = vialSize / desiredDose;
+            
+            let html = `
+                <div class="result-card">
+                    <h3>💉 Injection Instructions</h3>
+                    <div class="result-item">
+                        <span class="result-label">Draw to:</span>
+                        <span class="result-value">${unitsToInject.toFixed(2)} units</span>
+                    </div>
+                    <div class="result-item">
+                        <span class="result-label">Actual dose:</span>
+                        <span class="result-value">${desiredDose.toFixed(3)} mg</span>
+                    </div>
+                    <div class="result-item">
+                        <span class="result-label">Concentration:</span>
+                        <span class="result-value">${concentration.toFixed(2)} mg/mL</span>
+                    </div>
+                    <div class="result-item">
+                        <span class="result-label">Doses per vial:</span>
+                        <span class="result-value">${dosesPerVial.toFixed(1)} doses</span>
+                    </div>
+                    
+                    <div class="syringe-container">
+                        <div class="syringe">
+                            <div class="syringe-fill" style="width: ${Math.min(unitsToInject, 100)}%">
+                                ${unitsToInject.toFixed(1)} units
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            `;
+            
+            document.getElementById('results').innerHTML = html;
+            updateSupplyTracking(dosesPerVial, desiredDose);
+            updateSchedule(dosesPerVial, desiredDose);
+        }
+        
+        function calculateDose(vialSize, waterVolume, concentration) {
+            const unitsToInject = parseFloat(document.getElementById('unitsToInject').value) || 0;
+            const volumeToInject = unitsToInject / 100; // Convert units to mL
+            const actualDose = volumeToInject * concentration;
+            const dosesPerVial = vialSize / actualDose;
+            
+            let html = `
+                <div class="result-card">
+                    <h3>💉 Dose Information</h3>
+                    <div class="result-item">
+                        <span class="result-label">You will receive:</span>
+                        <span class="result-value">${actualDose.toFixed(3)} mg</span>
+                    </div>
+                    <div class="result-item">
+                        <span class="result-label">Volume injected:</span>
+                        <span class="result-value">${volumeToInject.toFixed(2)} mL</span>
+                    </div>
+                    <div class="result-item">
+                        <span class="result-label">Concentration:</span>
+                        <span class="result-value">${concentration.toFixed(2)} mg/mL</span>
+                    </div>
+                    <div class="result-item">
+                        <span class="result-label">Doses per vial:</span>
+                        <span class="result-value">${dosesPerVial.toFixed(1)} doses</span>
+                    </div>
+                    
+                    <div class="syringe-container">
+                        <div class="syringe">
+                            <div class="syringe-fill" style="width: ${Math.min(unitsToInject, 100)}%">
+                                ${unitsToInject.toFixed(1)} units
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            `;
+            
+            document.getElementById('results').innerHTML = html;
+            updateSupplyTracking(dosesPerVial, actualDose);
+            updateSchedule(dosesPerVial, actualDose);
+        }
+        
+        function updateSupplyTracking(dosesPerVial, doseAmount) {
+            const dosesTaken = parseFloat(document.getElementById('dosesTaken').value) || 0;
+            const remainingDoses = Math.max(0, dosesPerVial - dosesTaken);
+            const percentRemaining = (remainingDoses / dosesPerVial) * 100;
+            
+            const html = `
+                <div class="result-item">
+                    <span class="result-label">Doses taken:</span>
+                    <span class="result-value">${dosesTaken} / ${dosesPerVial.toFixed(1)}</span>
+                </div>
+                <div class="result-item">
+                    <span class="result-label">Remaining doses:</span>
+                    <span class="result-value">${remainingDoses.toFixed(1)} doses</span>
+                </div>
+                <div class="progress-bar">
+                    <div class="progress-fill" style="width: ${percentRemaining}%">
+                        ${percentRemaining.toFixed(0)}%
+                    </div>
+                </div>
+            `;
+            
+            document.getElementById('supplyResults').innerHTML = html;
+        }
+        
+        function updateSchedule(dosesPerVial, doseAmount) {
+            const frequency = document.getElementById('frequency').value;
+            let dosesPerWeek;
+            
+            switch(frequency) {
+                case 'daily': dosesPerWeek = 7; break;
+                case '6x': dosesPerWeek = 6; break;
+                case '5x': dosesPerWeek = 5; break;
+                case 'eod': dosesPerWeek = 3.5; break;
+                case 'weekly': dosesPerWeek = 1; break;
+                case 'custom': 
+                    dosesPerWeek = parseFloat(document.getElementById('customDoses').value) || 7;
+                    break;
+                default: dosesPerWeek = 7;
+            }
+            
+            const daysSupply = (dosesPerVial / dosesPerWeek) * 7;
+            const reorderDate = new Date();
+            reorderDate.setDate(reorderDate.getDate() + daysSupply - 3); // 3 days buffer
+            
+            const html = `
+                <div class="result-item">
+                    <span class="result-label">Frequency:</span>
+                    <span class="result-value">${dosesPerWeek} doses/week</span>
+                </div>
+                <div class="result-item">
+                    <span class="result-label">Days supply:</span>
+                    <span class="result-value">${daysSupply.toFixed(1)} days</span>
+                </div>
+                <div class="result-item">
+                    <span class="result-label">Reorder by:</span>
+                    <span class="result-value">${reorderDate.toLocaleDateString()}</span>
+                </div>
+                <div class="alert alert-info">
+                    Set reminders to never miss a dose and track your peptide therapy progress.
+                </div>
+            `;
+            
+            document.getElementById('scheduleResults').innerHTML = html;
+        }
+        
+        function addToCalendar() {
+            const frequency = document.getElementById('frequency').value;
+            let dosesPerWeek;
+            let freqText;
+            
+            switch(frequency) {
+                case 'daily': 
+                    dosesPerWeek = 7; 
+                    freqText = 'Daily';
+                    break;
+                case '6x': 
+                    dosesPerWeek = 6; 
+                    freqText = '6x per week';
+                    break;
+                case '5x': 
+                    dosesPerWeek = 5; 
+                    freqText = '5x per week';
+                    break;
+                case 'eod': 
+                    dosesPerWeek = 3.5; 
+                    freqText = 'Every other day';
+                    break;
+                case 'weekly': 
+                    dosesPerWeek = 1; 
+                    freqText = 'Weekly';
+                    break;
+                case 'custom': 
+                    dosesPerWeek = parseFloat(document.getElementById('customDoses').value) || 7;
+                    freqText = dosesPerWeek + 'x per week';
+                    break;
+                default: 
+                    dosesPerWeek = 7;
+                    freqText = 'Daily';
+            }
+            
+            const vialSize = parseFloat(document.getElementById('vialSize').value) || 0;
+            const waterVolume = parseFloat(document.getElementById('waterVolume').value) || 0;
+            let doseAmount;
+            
+            if (currentMode === 'units') {
+                const useWeight = document.getElementById('useWeight').checked;
+                if (useWeight) {
+                    const bodyWeight = parseFloat(document.getElementById('bodyWeight').value) || 0;
+                    const dosePerKg = parseFloat(document.getElementById('dosePerKg').value) || 0;
+                    doseAmount = bodyWeight * dosePerKg;
+                } else {
+                    doseAmount = parseFloat(document.getElementById('desiredDose').value) || 0;
+                }
+            } else {
+                const unitsToInject = parseFloat(document.getElementById('unitsToInject').value) || 0;
+                const concentration = vialSize / waterVolume;
+                const volumeToInject = unitsToInject / 100;
+                doseAmount = volumeToInject * concentration;
+            }
+            
+            const concentration = vialSize / waterVolume;
+            const unitsToInject = (doseAmount / concentration) * 100;
+            
+            // Create ICS file
+            const now = new Date();
+            const startDate = new Date(now.getFullYear(), now.getMonth(), now.getDate(), 9, 0, 0);
+            
+            const formatDate = (date) => {
+                return date.toISOString().replace(/[-:]/g, '').split('.')[0] + 'Z';
+            };
+            
+            const description = `Peptide Dose: ${doseAmount.toFixed(3)} mg\\n` +
+                              `Draw to: ${unitsToInject.toFixed(2)} units\\n` +
+                              `Vial: ${vialSize} mg in ${waterVolume} mL\\n` +
+                              `Frequency: ${freqText}`;
+            
+            const icsContent = `BEGIN:VCALENDAR
+VERSION:2.0
+PRODID:-//Peptide Dosing Calculator//EN
+CALSCALE:GREGORIAN
+METHOD:PUBLISH
+BEGIN:VEVENT
+DTSTART:${formatDate(startDate)}
+DTEND:${formatDate(new Date(startDate.getTime() + 15 * 60000))}
+SUMMARY:Peptide Dose - ${doseAmount.toFixed(3)} mg
+DESCRIPTION:${description}
+RRULE:FREQ=DAILY;COUNT=30
+BEGIN:VALARM
+TRIGGER:-PT15M
+ACTION:DISPLAY
+DESCRIPTION:Time for your peptide dose!
+END:VALARM
+END:VEVENT
+END:VCALENDAR`;
+            
+            // Download the file
+            const blob = new Blob([icsContent], { type: 'text/calendar' });
+            const url = window.URL.createObjectURL(blob);
+            const link = document.createElement('a');
+            link.href = url;
+            link.download = 'peptide-dosing-schedule.ics';
+            document.body.appendChild(link);
+            link.click();
+            document.body.removeChild(link);
+            window.URL.revokeObjectURL(url);
+        }
+        
+        // Initialize
+        calculate();
+    </script>
+</body>
+</html>
