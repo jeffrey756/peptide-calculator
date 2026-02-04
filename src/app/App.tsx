@@ -1,7 +1,6 @@
 import { useState, useEffect } from 'react';
 import { ChevronDown, ChevronUp, Plus, Minus, Calendar, AlertCircle, Loader2 } from 'lucide-react';
-import logo from 'figma:asset/8e50eef1e8226df655a5d01b2793eb6e3ab6fef1.png';
-
+import logo from 'https://lirp.cdn-website.com/7e0e5526/dms3rep/multi/opt/Logo+NB+HP-1920w.png';;
 type CalculationMode = 'units' | 'dose';
 type DosingSchedule = 'once-daily' | 'twice-daily' | 'once-daily-5days' | '2-3x-week' | 'every-other-day' | 'custom';
 
